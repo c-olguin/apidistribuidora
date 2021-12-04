@@ -5,5 +5,5 @@ flask_sqlalchemy
 flask_marshmallow
 flask_cors
 bcrypt
-jwt
+pyjwt
 pymysql
