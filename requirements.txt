@@ -6,3 +6,5 @@ flask_marshmallow
 flask_cors
 bcrypt
 jwt
+pymysql
+datetime
