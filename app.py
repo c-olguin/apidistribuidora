@@ -354,8 +354,9 @@ def add_cliente():
     direccion = request.json['direccion']
     cuit = request.json['cuit']
     telefono = request.json['telefono']
+    zona = request.json['zona']
 
-    cli = Clientes(nombre,direccion,cuit,telefono)
+    cli = Clientes(nombre,direccion,cuit,telefono,zona)
     db.session.add(cli)
     db.session.commit()
     return clientesNew_schema.jsonify(cli)
