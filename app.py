@@ -13,9 +13,11 @@ import datetime
 app = Flask(__name__)
 CORS(app)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://proyectodist:ADMIN2233@db4free.net:3306/proyectodist'
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://proyectodist:ADMIN2233@db4free.net:3306/proyectodist'
 
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://u276789818_distribuidora:HostCami2021@212.1.208.1:3306/u276789818_distHostinger'
+
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 
 app.secret_key = 'appLogin'
 db = SQLAlchemy(app)
@@ -55,9 +57,15 @@ class NewProductosSchema(ma.Schema):
     class Meta:
         fields = ('nombre', 'familia', 'stock', 'precio')
 
+class ProductosVendidos(ma.Schema):
+    class Meta:
+        fields = ('nombre', 'familia', 'cantidad')
+
+
 producto_schema = ProductosSchema()
 productoNew_schema = NewProductosSchema()
 productos_schema = ProductosSchema(many=True)
+productosVendidos_schema = ProductosVendidos(many=True)
 
 
 class Clientes(db.Model):
@@ -66,27 +74,30 @@ class Clientes(db.Model):
     direccion = db.Column(db.String(150), nullable=False)
     cuit = db.Column(db.String(50), nullable=True)
     telefono = db.Column(db.String(50), nullable=False)
+    zona = db.Column(db.String(50), nullable=False)
 
-    def __init__(self, idclientes,nombre, direccion, cuit, telefono):
+    def __init__(self, idclientes,nombre, direccion, cuit, telefono, zona):
         self.idclientes = idclientes
         self.nombre = nombre
         self.direccion = direccion
         self.cuit = cuit
         self.telefono = telefono
-    
-    def __init__(self,nombre, direccion, cuit, telefono):
+        self.zona = zona
+
+    def __init__(self,nombre, direccion, cuit, telefono, zona):
         self.nombre = nombre
         self.direccion = direccion
         self.cuit = cuit
         self.telefono = telefono
+        self.zona = zona
 
 class ClientesSchema(ma.Schema):
     class Meta:
-        fields = ('idclientes','nombre', 'direccion', 'cuit', 'telefono')
+        fields = ('idclientes','nombre', 'direccion', 'cuit', 'telefono', 'zona')
 
 class NewClientesSchema(ma.Schema):
     class Meta:
-        fields = ('nombre', 'direccion', 'cuit', 'telefono')
+        fields = ('nombre', 'direccion', 'cuit', 'telefono', 'zona')
 
 cliente_schema = ClientesSchema()
 clientesNew_schema = NewClientesSchema()
@@ -332,7 +343,6 @@ def get_clientes():
 
 @app.route('/getClientes/<id>',methods = ['GET'])
 def get_clienteOnlyOne(id):
-    print(id)
     cliente = Clientes.query.get(id)
     results = cliente_schema.dump(cliente)
     return jsonify(results)
@@ -384,6 +394,19 @@ def add_pedido():
         update_stockProduct(idproducto,newStock)
 
     return pedido_schema.jsonify(pedido)
+
+@app.route('/getPedidoPorFecha/<idusuario>/<fecha>',methods = ['GET'])
+def get_pedidosPorFecha(idusuario,fecha):
+    all_pedidos = Pedidos.query.filter_by(idusuario = idusuario, fecha = fecha).all()
+    results = pedidos_schema.dump(all_pedidos)
+    return jsonify(results)
+
+
+@app.route('/getProdVendidosPorFecha/<fecha>',methods = ['GET'])
+def getProductosVendidosPorFecha(fecha):
+    all_productos = db.session.query(Productos.nombre, Productos.familia, db.func.sum(Pedido_productos.cantidad).label("cantidad")).select_from(Productos).join(Pedido_productos, Productos.idproductos == Pedido_productos.idproducto).join(Pedidos, Pedido_productos.idpedido == Pedidos.idpedidos).filter_by(fecha = fecha).group_by(Productos.idproductos).all()
+    results = productosVendidos_schema.dump(all_productos)
+    return jsonify(results)
 
 if __name__ == "__main__":
     app.run(debug=True)
