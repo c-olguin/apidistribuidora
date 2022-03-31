@@ -197,7 +197,7 @@ pedidoprodtos_schema = PedidosProdSchema(many=True)
 
     
 @app.route('/registrar',methods = ['POST'])
-def registrar():
+async def registrar():
     username = request.json['username']
     password = request.json['password']
     rol = request.json['rol']
@@ -210,7 +210,7 @@ def registrar():
         password_encriptado = bcrypt.hashpw(password_encode,semilla)
 
         newUser = Usuarios(username,password_encriptado,rol)
-        db.session.add(newUser)
+        await db.session.add(newUser)
         db.session.commit()
 
         print(username)
@@ -248,21 +248,24 @@ def get_usuario(username):
     return jsonify(results)
 
 @app.route('/getProductos',methods = ['GET'])
-def get_productos():
-    all_productos = Productos.query.all()
-    results = productos_schema.dump(all_productos)
-    return jsonify(results)
+async def get_productos():
+    try: 
+        all_productos = await Productos.query.all()
+        results = await productos_schema.dump(all_productos)
+        return jsonify(results)
+    except Exception as ee:
+        print(ee)
 
    
 @app.route('/getProductosDelPedido/<id>',methods = ['GET'])
-def get_productosDelPedido(id):
+async def get_productosDelPedido(id):
     all_productos = Pedido_productos.query.filter_by(idpedido = id)
-    results = pedidoprodtos_schema.dump(all_productos)
+    results = await pedidoprodtos_schema.dump(all_productos)
     return jsonify(results) 
 
 @app.route('/getPedidos',methods = ['GET'])
-def get_pedidos():
-    all_pedidos = Pedidos.query.all()
+async def get_pedidos():
+    all_pedidos = await Pedidos.query.all()
     results = pedidos_schema.dump(all_pedidos)
     return jsonify(results)
 
@@ -285,7 +288,7 @@ def get_onlyOne(id):
 
 
 @app.route('/addProducto',methods = ['POST'])
-def add_producto():
+async def add_producto():
     print(request)
     nombre = request.json['nombre']
     familia = request.json['familia']
@@ -293,12 +296,12 @@ def add_producto():
     precio = request.json['precio']
 
     prod = Productos(nombre,familia,stock,precio)
-    db.session.add(prod)
+    await db.session.add(prod)
     db.session.commit()
     return productoNew_schema.jsonify(prod)
 
 @app.route('/updateProd/<id>/',methods = ['PUT'])
-def update_prod(id):
+async def update_prod(id):
     prod = Productos.query.get(id)
 
     stock = request.json['stock']
@@ -307,30 +310,30 @@ def update_prod(id):
     prod.stock = stock
     prod.precio = precio
 
-    db.session.commit()
+    await db.session.commit()
     return producto_schema.jsonify(prod)
 
-def update_stockProduct(id,stock):
+async def update_stockProduct(id,stock):
     prod = Productos.query.get(id)
 
     prod.stock = stock
 
-    db.session.commit()
+    await db.session.commit()
     return producto_schema.jsonify(prod)
 
 @app.route('/deleteProd/<id>/',methods = ['DELETE'])
-def delete_prod(id):
+async def delete_prod(id):
     prod = Productos.query.get(id)
-    db.session.delete(prod)
+    await db.session.delete(prod)
     db.session.commit()
 
     return producto_schema.jsonify(prod)
 
 @app.route('/deleteCli/<id>/',methods = ['DELETE'])
-def delete_cli(id):
+async def delete_cli(id):
     clien = Clientes.query.get(id)
     db.session.delete(clien)
-    db.session.commit()
+    await db.session.commit()
 
     return cliente_schema.jsonify(clien)
 
@@ -348,7 +351,7 @@ def get_clienteOnlyOne(id):
     return jsonify(results)
 
 @app.route('/addCliente',methods = ['POST'])
-def add_cliente():
+async def add_cliente():
     print(request)
     nombre = request.json['nombre']
     direccion = request.json['direccion']
@@ -357,12 +360,12 @@ def add_cliente():
     zona = request.json['zona']
 
     cli = Clientes(nombre,direccion,cuit,telefono,zona)
-    db.session.add(cli)
+    await db.session.add(cli)
     db.session.commit()
     return clientesNew_schema.jsonify(cli)
 
 @app.route('/addPedido',methods = ['POST'])
-def add_pedido():
+async def add_pedido():
     idclientes = request.json['idcliente']
     cli = get_clienteOnlyOne(idclientes)
     nombre = cli.json['nombre'] +" "+request.json['fecha']
@@ -373,7 +376,7 @@ def add_pedido():
     total = request.json['total']
     listaProd = request.json['productos']
     pedido = Pedidos(idclientes,nombre,fecha,total,idusuario)
-    db.session.add(pedido)
+    await db.session.add(pedido)
     db.session.commit()
     idpedido = pedidoID_schema.jsonify(pedido).json['idpedidos']
     
@@ -384,7 +387,7 @@ def add_pedido():
         nombre = x['nombre']
         familia = x['familia']
         producto = Pedido_productos(idpedido,idproducto,cantidad,precio_unidad,nombre,familia)
-        db.session.add(producto)
+        await db.session.add(producto)
         db.session.commit()
     
     for x in listaProd:
