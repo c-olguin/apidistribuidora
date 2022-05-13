@@ -1,8 +1,11 @@
 from sys import set_coroutine_origin_tracking_depth
+import asyncio
 from flask import Flask, request, session
 from flask.json import jsonify
 from flask_sqlalchemy import SQLAlchemy
 import pymysql
+from sqlalchemy import between
+from sqlalchemy.orm import selectinload
 pymysql.install_as_MySQLdb()
 from flask_marshmallow import Marshmallow
 from flask_cors import CORS
@@ -13,9 +16,9 @@ import datetime
 app = Flask(__name__)
 CORS(app)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://proyectodist:ADMIN2233@db4free.net:3306/proyectodist'
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://proyectodist:ADMIN2233@db4free.net:3306/proyectodist'
 
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://u276789818_distribuidora:HostCami2021@212.1.208.1:3306/u276789818_distHostinger'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://u276789818_distribuidora:HostCami2021@212.1.208.1:3306/u276789818_distHostinger'
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 
@@ -25,6 +28,9 @@ ma = Marshmallow(app)
 
 semilla = bcrypt.gensalt()
 
+async def create_all(self):
+        async with self._engine.begin() as conn:
+            await conn.run_sync(db.metadata.create_all)
 
 class Productos(db.Model):
     idproductos = db.Column(db.Integer, primary_key=True)
@@ -61,11 +67,15 @@ class ProductosVendidos(ma.Schema):
     class Meta:
         fields = ('nombre', 'familia', 'cantidad')
 
+class TotalesPorFechas(ma.Schema):
+    class Meta:
+        fields = ('fecha', 'total')
 
 producto_schema = ProductosSchema()
 productoNew_schema = NewProductosSchema()
 productos_schema = ProductosSchema(many=True)
 productosVendidos_schema = ProductosVendidos(many=True)
+totalesPorFecha_schema = TotalesPorFechas(many=True)
 
 
 class Clientes(db.Model):
@@ -399,12 +409,20 @@ def add_pedido():
 
     return pedido_schema.jsonify(pedido)
 
-@app.route('/getPedidoPorFecha/<idusuario>/<fecha>',methods = ['GET'])
-def get_pedidosPorFecha(idusuario,fecha):
-    all_pedidos = Pedidos.query.filter_by(idusuario = idusuario, fecha = fecha).all()
+@app.route('/getPedidoPorFecha/<idusuario>/<fecha1>/<fecha2>',methods = ['GET'])
+async def get_pedidosPorFecha(idusuario,fecha1,fecha2):
+    # all_pedidos = Pedidos.query.filter(Pedidos.idusuario == idusuario, Pedidos.fecha >= fecha1, Pedidos.fecha <= fecha2).all()
+    await asyncio.sleep(5)
+    all_pedidos = Pedidos.query.filter(Pedidos.idusuario == idusuario, Pedidos.fecha >= fecha1, Pedidos.fecha <= fecha2).all()    
     results = pedidos_schema.dump(all_pedidos)
     return jsonify(results)
 
+@app.route('/getTotalesPorFecha/<idusuario>/<fecha1>/<fecha2>',methods = ['GET'])
+async def get_totalesPorFecha(idusuario,fecha1,fecha2):
+    all_totales = db.session.query(Pedidos.fecha, db.func.sum(Pedidos.total).label("total")).select_from(Pedidos).join(Usuarios, Usuarios.idusuarios == Pedidos.idusuario).filter(Pedidos.idusuario == idusuario, Pedidos.fecha >= fecha1, Pedidos.fecha <= fecha2).group_by(Pedidos.fecha).all()
+    await asyncio.sleep(35)
+    results = totalesPorFecha_schema.dump(all_totales)
+    return jsonify(results)
 
 @app.route('/getProdVendidosPorFecha/<fecha>',methods = ['GET'])
 def getProductosVendidosPorFecha(fecha):
