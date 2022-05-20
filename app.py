@@ -412,6 +412,7 @@ def add_pedido():
 @app.route('/getPedidoPorFecha/<idusuario>/<fecha1>/<fecha2>',methods = ['GET'])
 async def get_pedidosPorFecha(idusuario,fecha1,fecha2):
     # all_pedidos = Pedidos.query.filter(Pedidos.idusuario == idusuario, Pedidos.fecha >= fecha1, Pedidos.fecha <= fecha2).all()
+    # Test push
     await asyncio.sleep(5)
     all_pedidos = Pedidos.query.filter(Pedidos.idusuario == idusuario, Pedidos.fecha >= fecha1, Pedidos.fecha <= fecha2).all()    
     results = pedidos_schema.dump(all_pedidos)
