@@ -414,7 +414,7 @@ def get_pedidosPorFecha(idusuario,fecha1,fecha2):
 
 @app.route('/getTotalesPorFecha/<fecha1>/<fecha2>',methods = ['GET'])
 def get_totalesPorFecha(fecha1,fecha2):
-    all_totales = db.session.query(Usuarios.username, Pedidos.fecha, Clientes.zona, db.func.sum(Pedidos.total).label("total")).select_from(Pedidos).join(Usuarios, Usuarios.idusuarios == Pedidos.idusuario).join(Clientes, Clientes.idclientes == Pedidos.idclientes).filter(Pedidos.fecha >= fecha1, Pedidos.fecha <= fecha2).group_by(Usuarios.username, Pedidos.fecha, Clientes.zona).all()
+    all_totales = db.session.query(Usuarios.username.label("nombre"), Pedidos.fecha, Clientes.zona, db.func.sum(Pedidos.total).label("total")).select_from(Pedidos).join(Usuarios, Usuarios.idusuarios == Pedidos.idusuario).join(Clientes, Clientes.idclientes == Pedidos.idclientes).filter(Pedidos.fecha >= fecha1, Pedidos.fecha <= fecha2).group_by(Usuarios.username, Pedidos.fecha, Clientes.zona).all()
     results = totalesPorFecha_schema.dump(all_totales)
     return jsonify(results)
 
