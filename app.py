@@ -70,7 +70,7 @@ class ProductosVendidos(ma.Schema):
 
 class TotalesPorFechas(ma.Schema):
     class Meta:
-        fields = ('fecha', 'total')
+        fields = ('nombre', 'zona', 'fecha', 'total')
 
 producto_schema = ProductosSchema()
 productoNew_schema = NewProductosSchema()
