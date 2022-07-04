@@ -17,6 +17,7 @@ app = Flask(__name__)
 CORS(app)
 
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://proyectodist:ADMIN2233@db4free.net:3306/proyectodist'
+# Deploy last changes
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://u276789818_distribuidora:HostCami2021@212.1.208.1:3306/u276789818_distHostinger'
 
@@ -299,7 +300,6 @@ def get_onlyOne(id):
 
 @app.route('/addProducto',methods = ['POST'])
 def add_producto():
-    print(request)
     nombre = request.json['nombre']
     familia = request.json['familia']
     stock = request.json['stock']
@@ -325,9 +325,7 @@ def update_prod(id):
 
 def update_stockProduct(id,stock):
     prod = Productos.query.get(id)
-
     prod.stock = stock
-
     db.session.commit()
     return producto_schema.jsonify(prod)
 
@@ -404,24 +402,19 @@ def add_pedido():
         idproducto = x['idproductos']
         oldStock = get_onlyOne(idproducto)
         newStock = oldStock.json['stock'] - x['cantidad']
-        print(newStock)
         update_stockProduct(idproducto,newStock)
 
     return pedido_schema.jsonify(pedido)
 
 @app.route('/getPedidoPorFecha/<idusuario>/<fecha1>/<fecha2>',methods = ['GET'])
-async def get_pedidosPorFecha(idusuario,fecha1,fecha2):
-    # all_pedidos = Pedidos.query.filter(Pedidos.idusuario == idusuario, Pedidos.fecha >= fecha1, Pedidos.fecha <= fecha2).all()
-    # Test push
-    await asyncio.sleep(5)
+def get_pedidosPorFecha(idusuario,fecha1,fecha2):
     all_pedidos = Pedidos.query.filter(Pedidos.idusuario == idusuario, Pedidos.fecha >= fecha1, Pedidos.fecha <= fecha2).all()    
     results = pedidos_schema.dump(all_pedidos)
     return jsonify(results)
 
 @app.route('/getTotalesPorFecha/<idusuario>/<fecha1>/<fecha2>',methods = ['GET'])
-async def get_totalesPorFecha(idusuario,fecha1,fecha2):
-    all_totales = db.session.query(Pedidos.fecha, db.func.sum(Pedidos.total).label("total")).select_from(Pedidos).join(Usuarios, Usuarios.idusuarios == Pedidos.idusuario).filter(Pedidos.idusuario == idusuario, Pedidos.fecha >= fecha1, Pedidos.fecha <= fecha2).group_by(Pedidos.fecha).all()
-    await asyncio.sleep(35)
+def get_totalesPorFecha(fecha1,fecha2):
+    all_totales = db.session.query(Usuarios.username, Pedidos.fecha, Clientes.zona, db.func.sum(Pedidos.total).label("total")).select_from(Pedidos).join(Usuarios, Usuarios.idusuarios == Pedidos.idusuario).join(Clientes, Clientes.idclientes == Pedidos.idclientes).filter(Pedidos.fecha >= fecha1, Pedidos.fecha <= fecha2).group_by(Usuarios.username, Pedidos.fecha, Clientes.zona).all()
     results = totalesPorFecha_schema.dump(all_totales)
     return jsonify(results)
 
