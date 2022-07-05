@@ -424,5 +424,25 @@ def getProductosVendidosPorFecha(fecha):
     results = productosVendidos_schema.dump(all_productos)
     return jsonify(results)
 
+@app.route('/updateCliente/<id>/',methods = ['PUT'])
+def update_cliente(id):
+    cli = Clientes.query.get(id)
+
+    nombre = request.json['nombre']
+    direccion = request.json['direccion']
+    cuit = request.json['cuit']
+    telefono = request.json['telefono']
+    zona = request.json['zona']
+   
+    cli.nombre = nombre
+    cli.direccion = direccion
+    cli.cuit = cuit
+    cli.telefono = telefono
+    cli.zona = zona
+
+    # await asyncio.sleep(100)
+    db.session.commit()
+    return cliente_schema.jsonify(cli)
+    
 if __name__ == "__main__":
     app.run(debug=True)
