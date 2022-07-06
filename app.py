@@ -126,11 +126,11 @@ class Usuarios(db.Model):
         self.password = password
         self.rol = rol
 
-    def __init__(self, idusuarios, username, password, rol):
-        self.idusuarios = idusuarios
-        self.username = username
-        self.password = password
-        self.rol = rol
+    # def __init__(self, idusuarios, username, password, rol):
+    #     self.idusuarios = idusuarios
+    #     self.username = username
+    #     self.password = password
+    #     self.rol = rol
 
 class UsuariosSchema(ma.Schema):
     class Meta:
