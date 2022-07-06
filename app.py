@@ -247,7 +247,31 @@ def login():
             # return error_response("Contraseña Incorrecta")
     else:
         return user_schema.jsonify({'password': "", 'rol': "", 'token': "", 'username': "El usuario no esta registrado", 'status': 2 })
-    
+
+@app.route('/changepass',methods = ['PUT'])
+def changepass():
+    username = request.json['username']
+    password = request.json['password']
+    newpassword = request.json['newpassword']
+    password_encode = password.encode("utf-8")
+
+    newUser = Usuarios.query.filter_by(username = username).first()
+    if newUser != None:
+        password_encriptado_encode = newUser.password.encode()
+        if (bcrypt.checkpw(password_encode,password_encriptado_encode)):
+            newpass_encode = newpassword.encode("utf-8")
+            password_encriptado = bcrypt.hashpw(newpass_encode,semilla)
+            newUser.password = password_encriptado
+
+            db.session.commit()
+
+            return user_schema.jsonify(newUser)
+        else:
+            return user_schema.jsonify({'password': "", 'rol': "", 'token': "", 'username': "Contraseña Incorrecta", 'status': 0 })
+            # return error_response("Contraseña Incorrecta")
+    else:
+        return user_schema.jsonify({'password': "", 'rol': "", 'token': "", 'username': "El usuario no esta registrado", 'status': 2 })
+ 
 @app.route('/getIdUsuario/<username>',methods = ['GET'])
 def get_usuario(username):
     user = Usuarios.query.filter_by(username = username).first()
