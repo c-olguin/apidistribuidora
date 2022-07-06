@@ -224,11 +224,7 @@ def registrar():
         db.session.add(newUser)
         db.session.commit()
 
-        print(username)
-        print(password)
-        print(rol)
-        print(password_encriptado)
-        return user_schema.jsonify(newUser)
+        return "good"
 
 @app.route('/login',methods = ['POST'])
 def login():
