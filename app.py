@@ -447,6 +447,12 @@ def getProductosVendidosPorFecha(fecha):
     results = productosVendidos_schema.dump(all_productos)
     return jsonify(results)
 
+@app.route('/getProdVendidosPorFechaYEmpleado/<fecha>/<idempleado>',methods = ['GET'])
+def getProductosVendidosPorFechaYEmpleado(fecha,idempleado):
+    all_productos = db.session.query(Productos.nombre, Productos.familia, db.func.sum(Pedido_productos.cantidad).label("cantidad")).select_from(Productos).join(Pedido_productos, Productos.idproductos == Pedido_productos.idproducto).join(Pedidos, Pedido_productos.idpedido == Pedidos.idpedidos).filter_by(fecha = fecha).join(Usuarios, Pedidos.idusuario == Usuarios.idusuarios).filter_by(idusuarios = idempleado).group_by(Productos.idproductos).all()
+    results = productosVendidos_schema.dump(all_productos)
+    return jsonify(results)
+
 @app.route('/updateCliente/<id>/',methods = ['PUT'])
 def update_cliente(id):
     cli = Clientes.query.get(id)
