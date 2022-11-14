@@ -19,6 +19,8 @@ CORS(app)
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://proyectodist:ADMIN2233@db4free.net:3306/proyectodist'
 # Deploy last changes
 
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://u276789818_admin12:HostCami2021@212.1.208.1:3306/u276789818_pruebaDis' --> Descomentarr
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://u276789818_distribuidora:HostCami2021@212.1.208.1:3306/u276789818_distHostinger'
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
